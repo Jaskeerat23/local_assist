@@ -1,4 +1,4 @@
-import os
+import hashlib
 from pathlib import Path
 from typing import List, Dict, Any
 from langchain_community.document_loaders import PyMuPDFLoader, generic
@@ -62,7 +62,22 @@ def load_docs(dir: str) -> List[Any]:
     
     return scanned_docs
 
+def make_chunk_id(chunk: Any) -> List[Any]:
+    
+    string = f"{chunk.metadata['source']}:{chunk.page_content}"
+    chunk_id = hashlib.sha256(string.encode()).hexdigest()[:16]
+    return chunk_id
+
 def chunk_documents(scanned_docs: List[Any]) -> List[Any]:
+    
+    '''
+    This function is a utility function that creates unique ids for each chunks, because
+    it uses source and content for each chunk and one of them is always unique.
+    The reason for manually building ids for each chunk, is that for evaluating RAGs we need
+    to construct dataset and if we run the same project more than one time, uuid will not create
+    same ids, so it is better to manually construct
+    '''
+    
     
     chunked_docs = []
     
@@ -107,7 +122,6 @@ def load_and_chunk(dir: str, should_chunk: bool = True):
     print(f"Maximum content len: {maxi_content}")
     print(f"Minimum content len: {mini_content}")
     
-    
     #Some times chunking is not needed in these type of projects since LanguageParser() already handles synatical equivalence
     
     if not should_chunk:
@@ -117,8 +131,18 @@ def load_and_chunk(dir: str, should_chunk: bool = True):
     
     chunked_docs = chunk_documents(scanned_docs)
     
-    return chunked_docs
+    chunk_ids = [make_chunk_id(doc) for doc in chunked_docs]
+    
+    chunk_ids_cnts = {}
+    
+    for chunk_id in chunk_ids:
+        if chunk_ids_cnts.get(chunk_id, -1) != -1:
+            raise print(f"One chunk id found more than once!!!!")
+    
+    return chunk_ids, chunked_docs
 
 if __name__ == "__main__":
     
-    load_and_chunk("D:/Full Stack PBL")
+    chunk_ids, chunked_docs = load_and_chunk("D:/Full Stack PBL")
+    
+    print(f"Sample of chunk ids: {chunk_ids[:10]}")
