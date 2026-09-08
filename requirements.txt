@@ -5,3 +5,6 @@ pypdf
 pymupdf
 ipykernel
 esprima
+sentence-transformers
+rank_bm25
+chromadb
