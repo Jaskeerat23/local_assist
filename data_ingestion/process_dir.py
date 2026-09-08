@@ -1,6 +1,6 @@
 import hashlib
 from pathlib import Path
-from typing import List, Dict, Any
+from typing import List, Dict, Tuple, Any
 from langchain_community.document_loaders import PyMuPDFLoader, generic
 from langchain_community.document_loaders.parsers import LanguageParser
 from langchain_text_splitters import RecursiveCharacterTextSplitter
@@ -16,7 +16,7 @@ def load_docs(dir: str) -> List[Any]:
     It stores these documents in a list and return it
     '''
     
-    print("extracting pdf docs.....")
+    print("\nextracting pdf docs.....\n")
     
     pdf_path = Path(dir)
     pdf_files = list(pdf_path.glob("**/*.pdf"))
@@ -93,7 +93,7 @@ def chunk_documents(scanned_docs: List[Any]) -> List[Any]:
     
     return chunked_docs
 
-def load_and_chunk(dir: str, should_chunk: bool = True):
+def load_and_chunk(dir: str, should_chunk: bool = True) -> Tuple[List[Any]]:
     
     #Scanning/Loading the files from the project diretory
     #The returned type will be list of langchain document data structre
@@ -125,7 +125,7 @@ def load_and_chunk(dir: str, should_chunk: bool = True):
     #Some times chunking is not needed in these type of projects since LanguageParser() already handles synatical equivalence
     
     if not should_chunk:
-        return scanned_docs
+        return None, scanned_docs
     
     # print(f"Sample of scanned docs:\n{scanned_docs[-1]}")
     
