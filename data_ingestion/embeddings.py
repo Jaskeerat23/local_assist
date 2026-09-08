@@ -1,6 +1,6 @@
 from sentence_transformers import SentenceTransformer
 from typing import List, Dict, Any
-import process_dir
+from . import process_dir
 import torch
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -26,11 +26,13 @@ class EmbeddingModel:
         '''
         
         docs = [doc.page_content for doc in chunks]
-        embs = List(self.model.encode(docs))
+        embs = list(self.model.encode(docs, show_progress_bar = True))
+        
+        print(f"Embeddings successfully created\n")
         return embs
 
 if __name__ == "__main__":
     embedding_manager = EmbeddingModel()
-    embs = embedding_manager.encode(process_dir.load_and_chunk("D:/Full Stack PBL"))
+    # embs = embedding_manager.encode(process_dir.load_and_chunk("D:/Full Stack PBL"))
     
-    print(f"SAMPLE OF EMBEDDINGS (first 300 numbers):\n{embs[0][:300]}")
+    # print(f"SAMPLE OF EMBEDDINGS (first 300 numbers):\n{embs[0][:300]}")
