@@ -26,7 +26,9 @@ class VectorStore:
         try:
             print(f"Creating Embeddings using {self.embedding_model}\n")
             
-            embeddings = self.embedding_manager.encode(chunks)
+            docs = [chunk.page_content for chunk in chunks]
+            
+            embeddings = self.embedding_manager.encode(docs)
             metadata = []
             content = []
             
