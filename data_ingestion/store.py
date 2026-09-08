@@ -1,14 +1,15 @@
 import chromadb
-import embeddings
+from . import embeddings
 
 class VectorStore:
     def __init__(self, persistent_dir: str, collection_name: str, embedding_model: str = 'Qwen/Qwen3-Embedding-0.6B'):
         self.client = None
         self.collection = None
-        self.persisten_dir = self.persisten_dir
-        self.collection_name = self.collection_name
+        self.persisten_dir = persistent_dir
+        self.collection_name = collection_name
         self.embedding_model = embedding_model
         self.embedding_manager = embeddings.EmbeddingModel(embedding_model)
+        self._create_collection()
     
     def _create_collection(self):
         try:
@@ -20,11 +21,7 @@ class VectorStore:
         except Exception as e:
             print(f"Cannot create a collection\n{e}")
     
-    def add_docs_to_store(self, chunk_ids, chunks):
-        
-        if self.collection.count() == len(chunks):
-            print(f"The vector store already have documents inserted, total count = {self.collection.count()}\n")
-            return
+    def embedd_and_store(self, chunk_ids, chunks):
         
         try:
             print(f"Creating Embeddings using {self.embedding_model}\n")
@@ -42,6 +39,8 @@ class VectorStore:
                 md['doc_index'] = i
                 
                 metadata.append(md)
+            
+            print(f"Sample of embeddings (FIRST 100 NUMBERS)\n{embeddings[0][:100]}")
             
             self.collection.add(
                 ids = chunk_ids,
