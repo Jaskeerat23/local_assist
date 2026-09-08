@@ -18,10 +18,15 @@ class EmbeddingModel:
         except Exception as e:
             print(f"Error loading the embedding model\n{e}")
     
-    def encode(self, chunks: List[Any]):
-        docs = [doc.page_content for doc in chunks]
-        embs = self.model.encode(docs)
+    def encode(self, chunks: List[Any]) -> List[Any]:
         
+        '''
+        This function takes the whole list of chunks and returns 
+        list of embeddings of each chunk
+        '''
+        
+        docs = [doc.page_content for doc in chunks]
+        embs = List(self.model.encode(docs))
         return embs
 
 if __name__ == "__main__":
