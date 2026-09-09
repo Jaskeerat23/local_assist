@@ -1,0 +1,251 @@
+[
+  {
+    "id": "q001",
+    "question": "What fields does the Users collection store for every account, and what are the allowed values for the role field?",
+    "relevant_chunk_ids": [
+      "1c26c48984b6e44b"
+    ],
+    "reference_answer": "The Users collection stores _id, userName, email (unique, indexed), password (hashed), pfp (profile image), role, createdAt, and updatedAt. The role field is an enum limited to rider, organizer, or sponsor."
+  },
+  {
+    "id": "q002",
+    "question": "What fields describe a ride's type, capacity, status, and communication settings in the data model?",
+    "relevant_chunk_ids": [
+      "d76c2638a7ea4306"
+    ],
+    "reference_answer": "A ride document includes type (enum: Adventure, Highway, City, OffRoad), maxSeats, bookedSeats (default 0), title, status (enum: Upcoming, Ongoing, Cancelled, Completed), createdAt, communicationLink, and communicationType (enum: telegram, whatsapp, email)."
+  },
+  {
+    "id": "q003",
+    "question": "What role-specific information does the signup flow collect for organizers, and how do the sponsor fields compare to the organizer's?",
+    "relevant_chunk_ids": [
+      "d91f37691fadcafc"
+    ],
+    "reference_answer": "For organizers, signup collects banner (brand image), name (organization name), description, socialLinks (Instagram/Facebook handles), website, and GSTIN (used to verify the organization). For sponsors, signup collects brandName plus banner, website, and description, which are described as being the same as the organizer's corresponding fields."
+  },
+  {
+    "id": "q004",
+    "question": "What data is requested on the login page versus the basic (non-role-specific) information requested on the signup page?",
+    "relevant_chunk_ids": [
+      "ea014fee42390eb6"
+    ],
+    "reference_answer": "The login page asks only for a User-Name/Email (a unique identifier) and Password. The signup page asks for basic information first: userName (the account name the user wants to keep), email (must be unique), password (hashed before storing), pfp (a profile picture), and role (enum: Rider, Organizer, Sponsor). Role-specific details are requested afterward on a separate page."
+  },
+  {
+    "id": "q005",
+    "question": "What Rider-specific fields does the signup page collect, and how do they differ from the Rider fields listed in the base data model?",
+    "relevant_chunk_ids": [
+      "43bd6a9076a559f4",
+      "1c26c48984b6e44b"
+    ],
+    "reference_answer": "The signup page collects fName, mName (if applicable), lName, age, city, banner, socialLinks, bikes (an array the rider selects from a dropdown, used to suggest rides), ridingStyle (an array of preferred styles), and bio (max 250 characters). The base Rider entry in the data model instead lists a single name field (not split into fName/mName/lName) along with age, city, Bike (array of strings), ridingStyle (array of strings), and bio (max 250 words), and does not include banner or socialLinks."
+  },
+  {
+    "id": "q006",
+    "question": "In the demo signup form's JavaScript, what happens if the confirm-password field doesn't match, and what payload is ultimately sent to the signup endpoint?",
+    "relevant_chunk_ids": [
+      "09ab57dabef6924a",
+      "db70d6d9c191c70b"
+    ],
+    "reference_answer": "handleSignup reads username, name, email, password, password2, and role (defaulting to 'rider') from the form; if password !== password2 it throws 'Passwords do not match.' before any request is made. Otherwise it builds a payload of { username, email, password, role, roleDetails: buildRoleDetails(form, role, name) } and POSTs it as JSON to API_BASE + '/auth/signup' with credentials included; on success it shows a success message and redirects to login.html after 900ms, and on failure it throws an error using the response's message or 'Signup failed.'"
+  },
+  {
+    "id": "q007",
+    "question": "How does the demo signup script build the roleDetails payload differently for organizer, sponsor, and rider roles?",
+    "relevant_chunk_ids": [
+      "5057f1c5653e0424",
+      "db303f61b63db72d"
+    ],
+    "reference_answer": "buildRoleDetails returns different shapes depending on role. For 'organizer' it returns { name, description: orgDescription, socialLinks: orgSocial, website: orgWebsite, gstin: orgGstin }. For 'sponsor' it returns { name, brandName: sponsorBrand, website: sponsorWebsite, description: sponsorDescription }. For any other role (rider) it returns { name, age: riderAge as a Number or null, city: riderCity, socialLinks: riderSocial, bikes: listFromCsv(riderBikes), ridingStyle: listFromCsv(riderStyle), bio: riderBio }, where listFromCsv splits a comma-separated string into a trimmed, non-empty array of items."
+  },
+  {
+    "id": "q008",
+    "question": "On the real login page, what does the app store in localStorage after a successful login, and how does it decide where to redirect the user?",
+    "relevant_chunk_ids": [
+      "1f62437543131ab9",
+      "4b5b79c014f66d1a"
+    ],
+    "reference_answer": "After validating that username and password are filled in, the page POSTs to https://ride-sync-backend-v1.onrender.com/auth/login with credentials included. On a non-ok response it shows an error message. On success it stores data.data.username, data.data.pfp, data.data.email, and data.data.role in localStorage (the JWT storage line is commented out). It then redirects based on role: 'new_organizer_dashboard.html' if the role is 'organizer', 'new_rider_dashboard.html' if the role is 'rider', or shows an 'Unknown role received. Contact support.' error otherwise."
+  },
+  {
+    "id": "q009",
+    "question": "How does the Google sign-in flow on the login page authenticate the user and route them afterward?",
+    "relevant_chunk_ids": [
+      "4253ecf9b0199f96",
+      "ef410d24de256cd6"
+    ],
+    "reference_answer": "handleGoogleCredential POSTs the Google credential response as JSON to https://ride-sync-backend-v1.onrender.com/auth/google_sign_in with credentials included. If the response isn't ok, it shows the server's error message or 'Google sign-in failed. Please try again.' On success it stores username, pfp, email, and role from data.data into localStorage, then redirects to 'new_organizer_dashboard.html' if the role is 'organizer', to 'new_rider_dashboard.html' if the role is 'rider', or shows 'Unknown role received from server.' otherwise."
+  },
+  {
+    "id": "q010",
+    "question": "What happens on the organizer analytics dashboard page from the moment it loads to when the successful-rides table is populated?",
+    "relevant_chunk_ids": [
+      "953a984eb041865f",
+      "72af3c316f4e221d",
+      "1a4f09093569a718"
+    ],
+    "reference_answer": "On DOMContentLoaded, the page reads pfp and username from localStorage, setting the profile image and greeting name. It then makes a GET request (credentials included) to /dashboard/get_basic_analysis; on success it fills in ridesCreated, totalBookings, and revenue (prefixed with '₹') from the response's stats, logging an error to the console on failure. Separately it GETs /dashboard/get_successful_rides; if unsuccessful or empty it shows an appropriate empty/error state in the rides table body, and otherwise it renders one row per ride showing the title, the start/end address (the text before the first comma of startAddress and endAddress), the bookedSeats count, and the entryFee prefixed with '₹'."
+  },
+  {
+    "id": "q011",
+    "question": "How does the ride card difficulty label decide which CSS class to apply?",
+    "relevant_chunk_ids": [
+      "569283080c3505e4"
+    ],
+    "reference_answer": "difficultyClass lowercases the given difficulty string and looks it up in a map of easy → difficulty-easy, moderate → difficulty-moderate, hard → difficulty-hard, and extreme → difficulty-extreme; if the difficulty isn't found in the map (or none is given), it falls back to difficulty-moderate."
+  },
+  {
+    "id": "q012",
+    "question": "How does the organizer dashboard build and populate its grid of ride cards?",
+    "relevant_chunk_ids": [
+      "f9671a09a57ab79f",
+      "17aab3df234bf695"
+    ],
+    "reference_answer": "renderRides clears the grid and, for each ride, creates a card whose image uses ride.banner or a fallback Unsplash photo (swapped in via onerror), showing the ride's title by default and, on hover, the title again plus the ride type and a difficulty badge styled with difficultyClass(ride.difficulty). The cards are populated by fetchRides, which GETs https://ride-sync-backend-v1.onrender.com/rides/org_rides with credentials included; on success it calls renderRides(json.data) if json.success and json.data is an array, otherwise it throws an error and shows a 'Failed to load rides' message in the grid."
+  },
+  {
+    "id": "q013",
+    "question": "What must be filled in before a user can advance past step 1 of the ride-creation form?",
+    "relevant_chunk_ids": [
+      "8acc2dc998f82ff8"
+    ],
+    "reference_answer": "Step 1 requires a non-empty title, a selected type, and a selected difficulty; each missing field is marked invalid (via the fail helper) and its corresponding error message is shown, and if any of the three is missing the step does not validate."
+  },
+  {
+    "id": "q014",
+    "question": "What does step 3 of the ride-creation form require before the user can proceed?",
+    "relevant_chunk_ids": [
+      "a2c059d24841b670"
+    ],
+    "reference_answer": "Step 3 requires values for startDate, endDate, time, and maxSeats; each is checked individually and marked invalid with its error shown if empty, and validation fails if any of them is missing."
+  },
+  {
+    "id": "q015",
+    "question": "What is required on the final step of the ride-creation form regarding communication details?",
+    "relevant_chunk_ids": [
+      "db0aca172f17794e"
+    ],
+    "reference_answer": "Step 4 requires that a communication type has been selected (selectedCommType is truthy) and that the communicationLink field is filled in (after trimming); missing either shows the corresponding error message and causes validation to fail."
+  },
+  {
+    "id": "q016",
+    "question": "How does the location search box in the ride-creation form decide when to fetch address suggestions?",
+    "relevant_chunk_ids": [
+      "d65b849849a4311d"
+    ],
+    "reference_answer": "On each input event the debounce timer is cleared; if the trimmed query is shorter than 3 characters, the dropdown is closed and nothing is fetched. Otherwise, after a 300ms debounce delay, fetchSuggestions is called with the query and the relevant map/marker/setter references. A separate document click listener closes the dropdown when a click occurs outside the input and the dropdown."
+  },
+  {
+    "id": "q017",
+    "question": "When a user clicks a suggested address in the ride-creation form's start-location search, how does that selection eventually reach the ride-creation request sent to the backend?",
+    "relevant_chunk_ids": [
+      "9b37b35cb0275d6e",
+      "81700f56dbba216c",
+      "a520657e2c128381"
+    ],
+    "reference_answer": "Clicking a suggestion item recenters the relevant map on the place's coordinates, shows the map, places (or replaces) a marker there, calls locSetter with { lat, lng }, calls addrSetter with the place's full display name, and updates the input's displayed text. For the start-location box, setupAutocomplete('startSearch', ...) wires locSetter to set the module-level startLocation variable and addrSetter to set startAddress. When the form is later submitted, submitRide() appends startAddress as a form field and appends startLocation to the FormData as a JSON-stringified GeoJSON Point ({ type: 'Point', coordinates: [startLocation.lng, startLocation.lat] })."
+  },
+  {
+    "id": "q018",
+    "question": "What fields are shown in the ride-creation form's review step before the user submits?",
+    "relevant_chunk_ids": [
+      "1c4fad5b35d3ff7b",
+      "4af652f3d390b8c8"
+    ],
+    "reference_answer": "buildReview assembles a list of label/value pairs for the review grid: Title, Type, Difficulty, Start (first two comma-separated parts of the start address), End (first two comma-separated parts of the end address), Length (with ' km' appended, or '—' if empty), Start Date, End Date, Time, Max Seats, Entry Fee (shown as 'Free' if the value is 0, otherwise '₹' plus the amount), and Platform (the selected communication type, or '—' if none was chosen)."
+  },
+  {
+    "id": "q019",
+    "question": "What data does submitRide() send to the backend when a new ride is created, and which endpoint does it call?",
+    "relevant_chunk_ids": [
+      "cb41fd23abdd7111",
+      "a520657e2c128381",
+      "7cc19246ffb57168"
+    ],
+    "reference_answer": "submitRide() builds a FormData object that includes the banner file (if provided) plus title, type, difficulty, startDate, endDate, time, length, maxSeats, entryFee (defaulting to 0), communicationType, communicationLink, startAddress, endAddress, and startLocation/endLocation each serialized as JSON GeoJSON Points with coordinates [lng, lat]. It then POSTs this FormData with credentials included to http://localhost:3000/rides/create_ride; on a non-ok response or an unsuccessful result it throws an error shown via alert and re-enables the submit button, and on success it hides the steps bar and step 4 panel and shows the success state."
+  },
+  {
+    "id": "q020",
+    "question": "How does the backend turn a submitted ride-creation request into a stored Ride document, including the banner image?",
+    "relevant_chunk_ids": [
+      "0c8e863c07449d7c",
+      "74af6f1d1f302c26",
+      "67944350695de609",
+      "6f17be4ae1d78f85"
+    ],
+    "reference_answer": "The create_ride controller parses the JSON-stringified startLocation and endLocation from the request body, attaches the authenticated user's _id as data.userId, and, if a file was uploaded, builds a key like `rides/{timestamp}-{originalname}`, uploads it to R2 via a PutObjectCommand, and sets data.banner to `${R2_PUBLIC_URL}/${fileName}`. It then calls rideService.create_ride(data) and responds with status 201 and the created ride. The service function pulls title, entryFee (parsed as a float), startDate, endDate, communicationLink, startAddress, endAddress, communicationType, maxSeats, length, time, difficulty, and type from the data, then calls Ride.create with those fields plus banner and startLocation/endLocation each rebuilt as a GeoJSON Point from the parsed coordinates, returning { success: true, data: ride }."
+  },
+  {
+    "id": "q021",
+    "question": "How is a JWT created after login or signup, and how does the auth middleware use it to protect routes?",
+    "relevant_chunk_ids": [
+      "749f21d5b514f644",
+      "532327cbc55f17de",
+      "3d33979a2da6235f"
+    ],
+    "reference_answer": "create_jwt_token signs a payload with jwt.sign using process.env.SECRET_KEY_JWT and an expiresIn value, returning the signed token. The login controller calls this after authService.login_user succeeds, then sets it as a cookie named 'token' with httpOnly: true, sameSite: 'none', secure: true, and a maxAge of 7 days in milliseconds, before responding with the user's _id, username, email, role, and pfp. On protected routes, authMiddleware reads the token from req.cookies.token, returning 400 'No Token Found' if it's missing; otherwise it verifies the token with jwt.verify against SECRET_KEY_JWT, attaches the decoded payload to req.user, and calls next(), or returns 401 'Invalid token' if verification fails."
+  },
+  {
+    "id": "q022",
+    "question": "What does the authorizeRole middleware check, and how is it exposed alongside authMiddleware?",
+    "relevant_chunk_ids": [
+      "cd5c6067a4ce59f7",
+      "3d33979a2da6235f"
+    ],
+    "reference_answer": "authorizeRole(role) returns a middleware function that compares req.user.role (set earlier by authMiddleware) against the given role; if they don't match it responds with status 403 and 'User not authorized', otherwise it calls next(). The auth middleware module exports both authMiddleware and authorizeRole together via module.exports, so route files can chain them (e.g., requiring a valid token and a specific role) on the same route."
+  },
+  {
+    "id": "q023",
+    "question": "How does the backend verify a submitted password during login, and what does it return if the password is wrong?",
+    "relevant_chunk_ids": [
+      "411531d11a3e3124"
+    ],
+    "reference_answer": "After finding the user by userName, the code compares the submitted password to the stored hashed password using bcrypt.compare. If the comparison succeeds, it returns { success: true, data } with the user's _id, username, email, role, and pfp. If the comparison fails, it returns { success: false, message: 'Entered Password is incorrect' } instead of throwing."
+  },
+  {
+    "id": "q024",
+    "question": "How is Cloudflare R2 object storage configured, and where does the app use it for profile pictures?",
+    "relevant_chunk_ids": [
+      "11daf76951448b21",
+      "18cce76253f9ccbb",
+      "a70d77eff1c27269"
+    ],
+    "reference_answer": "The R2 client is created as an S3Client with region 'auto' and an endpoint of `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`, authenticated with process.env.R2_ACCESS_KEY_ID and process.env.R2_SECRET_ACCESS_KEY. The Users schema defaults a new user's pfp field to `${process.env.R2_PUBLIC_URL}/pfp/default_pfp.png`. During signup, if an image file is supplied, its extension is taken from its mimetype and it is uploaded to R2 under the key `pfp/{newObjId}.{ext}` via a PutObjectCommand, after which the user's pfp field is updated to `${process.env.R2_PUBLIC_URL}/pfp/{newObjId}.{ext}`."
+  },
+  {
+    "id": "q025",
+    "question": "What happens if role-specific profile creation fails after a profile picture has already been uploaded to R2 during signup?",
+    "relevant_chunk_ids": [
+      "a70d77eff1c27269",
+      "5ad59e04e860d1b4"
+    ],
+    "reference_answer": "sign_up_user uploads the profile picture to R2 and sets r2Uploaded to true before calling insert_role_based within the same session. If an error is thrown anywhere in this process, the catch block checks r2Uploaded and, if true, sends a DeleteObjectCommand to R2 using the same params that were used for the upload, then aborts the MongoDB transaction, ends the session, and rethrows the error — preventing an orphaned file in R2 when the account creation doesn't fully succeed."
+  },
+  {
+    "id": "q026",
+    "question": "How does rider signup validate and store the rider's location, and how does that relate to the Rider schema?",
+    "relevant_chunk_ids": [
+      "f2a1585ca1caddea",
+      "0876deb032c60fa2",
+      "ecadc52ca4d83029"
+    ],
+    "reference_answer": "For the rider role, insert_role_based extracts display_name, and parses lat and lng from roleDetails as floats; if lat or lng is missing or NaN it throws 'No Location Entered'. It then creates a new Rider document with city set to display_name and cityLocation set to a GeoJSON Point with coordinates [lng, lat], along with name, age, socialLinks, bikes, ridingStyle, and bio. This matches the Riders schema, which defines a cityLocation field using the shared Point/coordinates locationSchema alongside userId, name, age, city, socialLinks, bikes, ridingStyle, and bio."
+  },
+  {
+    "id": "q027",
+    "question": "What determines whether a rider can book a specific ride, according to the backend ride-details logic and how the frontend explains an unavailable booking?",
+    "relevant_chunk_ids": [
+      "93bc6336c238886e",
+      "ae347b515dfed2d4"
+    ],
+    "reference_answer": "The backend sets canBook to false if bookedSeats is already at or above maxSeats (the ride is full); if the ride is brand-locked (ride.crossBike === false), canBook is true only if the rider's bikes array includes the ride's brand, otherwise false; in any other case (cross-bike allowed or the field unset, with seats available) canBook is true. On the frontend, when canBook is false, the rider view shows 'This ride is fully booked' if the ride is full, 'Bike doesn't match' (naming the locked brand) if ride.crossBike === false, or a generic 'Booking unavailable' message otherwise; when canBook is true it shows 'Ready to ride?' inviting the rider to book."
+  },
+  {
+    "id": "q028",
+    "question": "What does the ride-details backend response include for an organizer viewing a ride versus a sponsor viewing one?",
+    "relevant_chunk_ids": [
+      "57b6cc8a4d400183"
+    ],
+    "reference_answer": "For an organizer, canEdit is set to true only if the ride's userId matches the requesting organizer's own _id (both compared as strings); otherwise canEdit is false. For a sponsor, the response always sets canContactForSponsor to true, regardless of the specific ride."
+  }
+]
