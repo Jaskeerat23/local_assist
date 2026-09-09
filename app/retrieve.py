@@ -2,12 +2,12 @@ from data_ingestion import store, embeddings
 from typing import List, Any, Dict
 
 class Retrieval:
-    def __init__(self, vector_store: store.VectorStore, embedding_model: str = "Qwen/Qwen3-Embedding-0.6B", n_results: int = 10):
+    def __init__(self, vector_store: store.VectorStore, n_results: int = 10, embedding_model: str = "Qwen/Qwen3-Embedding-0.6B"):
         self.vector_store = vector_store
         self.embedding_manager = embeddings.EmbeddingModel(embedding_model)
-        self.n_results = self.n_results
+        self.n_results = n_results
     
-    def retrieval_engine(self, query: str) -> Dict[Any]:
+    def retrieval_engine(self, query: str) -> Dict[Any, Any]:
         
         try:
             query_embs = self.embedding_manager.encode([query])[0]
