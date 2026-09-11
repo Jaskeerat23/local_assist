@@ -8,3 +8,4 @@ esprima
 sentence-transformers
 rank_bm25
 chromadb
+nltk
