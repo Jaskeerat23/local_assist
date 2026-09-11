@@ -1,4 +1,5 @@
 import json
+import pickle
 from data_ingestion import process_dir, store
 
 def ingest_data(dir: str):
@@ -6,6 +7,11 @@ def ingest_data(dir: str):
     # Step. 1 load docs, chunk them, give them some id
     chunk_ids, chunks = process_dir.load_and_chunk(dir)
     
+    # Store chunk ids into a file so it can be used for BM25 algorithm
+    with open('data/chunk_ids.pkl', 'wb') as f:
+        pickle.dump(chunk_ids, f)
+    
+    # this helps generating chunks.jsonl so that it can be used to create dataset
     with open("D:/local_assist/evaluation/chunks.jsonl", "w", encoding="utf-8") as f:
         for chunk_id, chunk in zip(chunk_ids, chunks):
             record = {
@@ -17,7 +23,11 @@ def ingest_data(dir: str):
     # Step. 2 to convert these chunks into embeddings and then storing them to vector store
     vectorstore = store.VectorStore(persistent_dir = './my_chromadb', collection_name = 'codebase_docs')
     vectorstore.embedd_and_store(chunk_ids, chunks)
-
+    
+    # Step. 3 to make a collection for sparse vectors for enabling hybrid search
+    sparsestore = store.SparseVectorStore(collection_path = 'data/bm25Table.pkl')
+    sparsestore.add_docs_to_store(chunks)
+    
 if __name__ == "__main__":
     
     ingest_data("D:/Full Stack PBL")
