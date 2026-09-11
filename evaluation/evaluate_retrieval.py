@@ -10,7 +10,7 @@ def eval_retrieval(record, n_results = 5, dataset_path: str = 'evaluation/rag_ev
     
     # the dataset returned is list of json basically -> List[JSON]
     vector_store = store.VectorStore(persistent_dir = './my_chromadb', collection_name = 'codebase_docs') # this must be same as ingest.py
-    retrivalEngine = retrieve.Retrieval(vector_store = vector_store, n_results = n_results)
+    retrivalEngine = retrieve.Retrieval(vector_store = vector_store, sparse_store_path = 'data/bm25Table.pkl', k = 60, n_results = n_results)
     
     for i, sample in enumerate(json_data, start = 1):
         
@@ -21,6 +21,7 @@ def eval_retrieval(record, n_results = 5, dataset_path: str = 'evaluation/rag_ev
         
         relevant_docs = retrivalEngine.retrieval_engine(query)
         
+        # print(relevant_docs)
         ret_chunk_ids = set(relevant_docs["ids"][0])
         
         recall_k = len(ret_chunk_ids.intersection(relevant_chunk_ids))/len(relevant_chunk_ids)
@@ -53,4 +54,4 @@ if __name__ == "__main__":
     record.update({'embedding_model' : 'Qwen/Qwen3-Embedding-0.6B'})
     record.update({'search_type' : 'dense embeddings'})
     
-    eval_retrieval(record, n_results=20)
+    eval_retrieval(record, n_results=50)
