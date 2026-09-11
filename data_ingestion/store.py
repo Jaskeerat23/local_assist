@@ -1,5 +1,11 @@
-import chromadb
+import chromadb 
+import nltk
+import pickle
 from . import embeddings
+from typing import List, Any, Dict
+from rank_bm25 import BM25Okapi
+from nltk.tokenize import word_tokenize
+nltk.download('punkt_tab')
 
 class VectorStore:
     def __init__(self, persistent_dir: str, collection_name: str, embedding_model: str = 'Qwen/Qwen3-Embedding-0.6B'):
@@ -21,7 +27,7 @@ class VectorStore:
         except Exception as e:
             print(f"Cannot create a collection\n{e}")
     
-    def embedd_and_store(self, chunk_ids, chunks):
+    def embedd_and_store(self, chunk_ids: List[Any], chunks: List[Any]):
         
         try:
             print(f"Creating Embeddings using {self.embedding_model}\n")
@@ -36,9 +42,11 @@ class VectorStore:
                 
                 content.append(doc.page_content)
                 
-                md = doc.metadata
-                md['content_length'] = len(doc.page_content)
-                md['doc_index'] = i
+                md = {
+                    **doc.metadata,
+                    'content_length': len(doc.page_content),
+                    'doc_index': i
+                }
                 
                 metadata.append(md)
             
@@ -56,3 +64,22 @@ class VectorStore:
             
         except Exception as e:
             print(f"Error inserting documents into collection\n{e}")
+
+class SparseVectorStore:
+    def __init__(self, collection_path: str):
+        self.collection_path = collection_path
+    
+    def add_docs_to_store(self, chunks: List[Any]):
+        
+        try:
+            tokenized_chunks = [word_tokenize(chunk.page_content) for chunk in chunks]
+            
+            bm25Tab = BM25Okapi(tokenized_chunks)
+            
+            with open(self.collection_path, 'wb') as f:
+                pickle.dump(bm25Tab, f)
+            
+            print(f"Stored BM25 table successfully in {self.collection_path}")
+        
+        except Exception as e:
+            print(f"Error inserting docs into sparse store\n{e}")
